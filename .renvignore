@@ -1,0 +1,5 @@
+echo "envUbuntu/" >> .renvignore
+echo "*/__pycache__/" >> .renvignore
+
+envUbuntu
+renv

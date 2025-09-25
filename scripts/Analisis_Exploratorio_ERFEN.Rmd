@@ -1,0 +1,951 @@
+---
+title: Análisis exploratorio de datos de Biodiversidad del Ictioplancton para varios
+  cruceros ERFEN
+author: |2
+  | Beatriz Beltrán
+  | Christian Bermúdez Rivas
+date: "2025-03-03"
+output:
+  html_document:
+    fig_caption: true
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    number_sections: true
+    theme: default
+    code_folding: hide
+  pdf_document:
+    toc: true
+    toc_depth: '3'
+subtitle: |2
+  | Universidad del Valle
+  | Centro de indestigaciones Oceanográficas e Hidrográficas del Pacífico
+---
+
+
+
+# Análisis exploratorio de diversidad
+
+En este apartado se harán los análisis exploratorio de biodiversidad del ictioplancton de los años 1993, 2004, 2005 y 2019.
+
+
+## Carga de librerías necesarias para los análisis
+
+Se cargan las librerías necesarias para el análisis de EDA de biodiversidad
+
+```{r, echo=TRUE, warning=FALSE}
+
+require(dplyr)
+require(ggplot2)
+require(reactable)
+require(iNEXT)
+require(readxl)
+
+```
+
+
+
+## Carga de los datos
+
+Se cargan los datos necesarios para los análisis exploratorios.
+
+
+
+```{r datos, echo=TRUE, message=FALSE, console=FALSE,  fig.height=5, fig.cap="Histograma de la ddensidad"}
+
+data_quantity<-readxl::read_excel("../data/raw/biodiversity/Listado_Especies_v3 revisada_BB_ERFEN.xlsx", sheet="organismQuantity")
+
+reactable(data_quantity, defaultPageSize = 50)
+
+
+
+#densidad_ordenado$rango<-1:256
+
+```
+```{r datos2, echo=TRUE, message=FALSE, console=FALSE,  fig.height=5, fig.cap="Histograma de la ddensidad"}
+
+
+densidad_total<-as.data.frame(colSums(data_quantity[, 12:267]))
+
+colnames(densidad_total)<-c("Total_Density")
+# Ordenar por la columna A de manera descendente
+densidad_ordenado <- densidad_total %>%
+  arrange(desc(Total_Density))
+
+reactable(densidad_ordenado, defaultPageSize = 50)
+
+#densidad_ordenado$rango<-1:256
+
+```
+
+```{r histograma, echo=TRUE, message=FALSE, console=FALSE,  fig.height=5, fig.cap="Histograma de la ddensidad"}
+
+
+summary(densidad_total$Total_Density)
+
+boxplot(densidad_total$Total_Density)
+
+hist(densidad_total$Total_Density,
+     freq = TRUE)
+
+options(scipen=9999)
+```
+
+```{r,echo=TRUE, warning=FALSE}
+
+
+ggplot()+
+  geom_point(aes(y=densidad_ordenado[["Total_Density"]], x=seq(1:256)))+
+  scale_y_continuous(trans='log10', limits = function(x){c(min(x), ceiling(100000))})+
+  labs(colour = "", subtitle = "Rango - Densidad", title="Abundancia Total",  x ="Rango", y =expression(paste("log(abundancia) [ind 10 ", m^-2, "]")),tag="A.")+
+  theme_bw()+
+  theme(legend.position="bottom", 
+        axis.text.y =  element_text(size = 8),
+        axis.title =  element_text(size = 8),
+        plot.title = element_text(size = 8),
+        plot.subtitle = element_text(size = 8),
+        plot.caption= element_text(size = 8),
+        plot.tag = element_text(size=8))
+
+```
+
+```{r,echo=TRUE, warning=FALSE}
+
+
+Total_Rank_data<- vegan::rad.lognormal(densidad_ordenado$Total_Density)
+
+Total_Rank_radfit<- vegan::radfit(densidad_ordenado$Total_Density)
+
+
+ggplot()+
+  geom_point(aes(y=Total_Rank_radfit[["y"]], x=seq(1:256)))+
+  geom_line(aes(y= Total_Rank_radfit[["models"]][["Null"]][["fitted.values"]],x=seq(1:256),color="Null" ))+
+  geom_line(aes(y= Total_Rank_radfit[["models"]][["Preemption"]][["fitted.values"]],x=seq(1:256),color="Preemption"))+
+  geom_line(aes(y= Total_Rank_radfit[["models"]][["Lognormal"]][["fitted.values"]],x=seq(1:256),color="Lognormal" ))+
+  geom_line(aes(y= Total_Rank_radfit[["models"]][["Zipf"]][["fitted.values"]],x=seq(1:256),color="Zipf"))+
+  geom_line(aes(y= Total_Rank_radfit[["models"]][["Mandelbrot"]][["fitted.values"]],x=seq(1:256),color="Mandelbrot" ))+
+  scale_y_continuous(trans='log10')+
+  scale_color_manual(values = c( "#d7191c","#fdae61", "#a6dba0", "#008837", "#2b83ba"),
+                     #breaks=c("Jet Chocó", "Null", "Preemption", "Lognormal", "Zipf", "Mandelbrot"),
+                     name = " ",
+                     labels=c(  "Mandelbrot", "Zipf","Lognormal","Preemption", "Null")
+  )+
+  labs(colour = "", subtitle = "Rango - Densidad", title="Densidad total",  x ="Rango", y =expression(paste("log(Densidad) [ind 10 ", m^-2, "]")),tag="B.")+
+  theme_bw()+
+  theme(legend.position="bottom", 
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 8),
+        plot.title = element_text(size = 8),
+        plot.subtitle = element_text(size = 8),
+        plot.caption= element_text(size = 8),
+        plot.tag = element_text(size=8))
+
+
+
+```
+
+```{r,echo=TRUE, warning=FALSE}
+
+#Diversidad####
+
+
+D0_total<-hilldiv::hill_div(densidad_ordenado, qvalue = 0)
+D1_total<-hilldiv::hill_div(densidad_ordenado, qvalue = 1)
+D2_total<-hilldiv::hill_div(densidad_ordenado, qvalue = 2)
+
+
+
+Div_hill_Total<-base::list(D0_total,D1_total,D2_total)
+Div_hill_Total_df<-base::as.data.frame(Div_hill_Total)
+base::colnames(Div_hill_Total_df)<-c("q0", "q1","q2")
+
+Div_hill_Total_df_trans<-as.data.frame(t(Div_hill_Total_df))
+Div_hill_Total_df_trans$Orden<-c(0,1,2)
+
+
+Rango_DivPlot <- ggplot2::ggplot() +
+  geom_line(data = Div_hill_Total_df_trans, aes(x = Orden, y = Total_Density ), color = "black", lwd = 0.5, linetype = 1) +
+  geom_point(data = Div_hill_Total_df_trans, aes(x = Orden, y = Total_Density ), color = "black", size =3) +
+   labs(
+    title = "Perfiles de diversidad",
+    x = "Orden",
+    y = "Diversidad",
+    color = "Variable") +
+     theme_minimal()
+
+Rango_DivPlot
+
+```
+
+# Analisis relacionados con el ENOS
+
+## Gráficas Indice ONI
+
+
+```{r,echo=TRUE, warning=FALSE, fig.height=9, fig.width=12}
+
+datos_indice_Climaticos <- readxl::read_excel("../data/processed/Indices_Total.xlsx", sheet = "indices")
+#datos_indice_Climaticos <- readxl::read_excel("../data/processed/Indices_Total.xlsx", sheet = "crucero_analizados")
+ONI <- datos_indice_Climaticos%>%
+          subset(index_name == "ONI")
+
+
+
+ONI$date <- as.Date(ONI$date)
+
+cruceros<-as.data.frame(as.Date(c("1993-04-01", 
+                                  "1993-10-01",
+                  "2004-09-01",
+                  "2005-09-01",
+                  "2006-03-01",
+                  "2006-09-01")))
+ceros<-as.data.frame(rep(0, times=6))
+
+cruceros<-cbind(ceros, cruceros)
+
+colnames(cruceros) <-c("value.y", "date")
+
+
+group.colors <- c(Neutro = "#808080", Niño = "#d7191c", Niña ="#2c7bb6")
+
+ggplot() + 
+  geom_col(data = ONI, aes(x = date, y = value, fill = event)) +
+  
+  scale_fill_manual(values = group.colors) +
+  scale_x_date(limits = c(as.Date("1993-01-01"), as.Date("2006-12-31")), 
+               date_labels = "%Y", date_breaks = "2 years") +
+  geom_hline(yintercept = 0.5, color = "#d7191c", size = 1) +  # Línea roja en 0.5
+  geom_hline(yintercept = -0.5, color = "#2c7bb6", size = 1) +  # Línea azul en -0.5
+  labs(
+    x = "Date", 
+    y = "ONI",
+    fill = "Evento", 
+    title = "Índice Oceánico El Niño (ONI)", 
+    subtitle = "3-month rolling mean of ERSST.v5 SST anomalies in the Niño 3.4 region"
+  ) +
+  theme_bw(base_size = 12) +
+  geom_point(data = cruceros, aes(x=date, y =value.y ), size = 2)+
+  theme(legend.position = "bottom")
+
+
+```
+
+## Tabla con características de El Niño Oscilación Sur durante los cruceros analizados
+
+```{r,echo=TRUE, warning=FALSE, fig.height=9, fig.width=12}
+
+
+datos_indice_Climaticos_cruceros <- readxl::read_excel("../data/processed/Indices_Total.xlsx", sheet = "crucero_analizados")
+datos_indice_Climaticos_cruceros<-datos_indice_Climaticos_cruceros%>%
+  select(!index_description)
+reactable(datos_indice_Climaticos_cruceros)
+```
+
+```{r,echo=TRUE, warning=FALSE}
+
+nino<-data_quantity%>%
+        filter(ONI == "Niño")
+nina<-data_quantity%>%
+  filter(ONI == "Niña")
+neutro<-data_quantity%>%
+  filter(ONI == "Neutro")
+
+densidad_nino<-as.data.frame(colSums(nino[, 12:267]))
+
+colnames(densidad_nino)<-c("Niño")
+
+# Ordenar por la columna A de manera descendente
+densidad_nino_ord <- densidad_nino %>%
+  arrange(desc(Niño))%>%
+  filter(Niño != 0)
+
+
+densidad_nina<-as.data.frame(colSums(nina[, 12:267]))
+
+colnames(densidad_nina)<-c("Niña")
+
+# Ordenar por la columna A de manera descendente
+densidad_nina_ord <- densidad_nina %>%
+  arrange(desc(Niña))%>%
+  filter(Niña != 0)
+
+
+densidad_neutro<-as.data.frame(colSums(neutro[, 12:267]))
+
+colnames(densidad_neutro)<-c("Neutro")
+
+# Ordenar por la columna A de manera descendente
+densidad_neutro_ord <- densidad_neutro %>%
+  arrange(desc(Neutro))%>%
+  filter(Neutro != 0)
+
+Diversidad_Total_Enos<-cbind(densidad_nino, densidad_nina, densidad_neutro)
+Diversidad_Total_Enos$Niño<-as.integer(Diversidad_Total_Enos$Niño)
+Diversidad_Total_Enos$Niña<-as.integer(Diversidad_Total_Enos$Niña)
+Diversidad_Total_Enos$Neutro<-as.integer(Diversidad_Total_Enos$Neutro)
+
+
+reactable(Diversidad_Total_Enos, defaultPageSize = 50)
+```
+
+
+
+```{r echo=TRUE, warning=FALSE}
+#Diversidad ENOS####
+
+#Niño
+
+D0_nino<-hilldiv::hill_div(densidad_nino_ord, qvalue = 0)
+D1_nino<-hilldiv::hill_div(densidad_nino_ord, qvalue = 1)
+D2_nino<-hilldiv::hill_div(densidad_nino_ord, qvalue = 2)
+
+
+
+Div_hill_nino<-base::list(D0_nino,D1_nino,D2_nino)
+Div_hill_nino_df<-base::as.data.frame(Div_hill_nino)
+base::colnames(Div_hill_nino_df)<-c("q0", "q1","q2")
+
+Div_hill_nino_df_trans<-as.data.frame(t(Div_hill_nino_df))
+Div_hill_nino_df_trans$Orden<-c(0,1,2)
+
+#Niña
+
+D0_nina<-hilldiv::hill_div(densidad_nina_ord, qvalue = 0)
+D1_nina<-hilldiv::hill_div(densidad_nina_ord, qvalue = 1)
+D2_nina<-hilldiv::hill_div(densidad_nina_ord, qvalue = 2)
+
+
+
+Div_hill_nina<-base::list(D0_nina,D1_nina,D2_nina)
+Div_hill_nina_df<-base::as.data.frame(Div_hill_nina)
+base::colnames(Div_hill_nina_df)<-c("q0", "q1","q2")
+
+Div_hill_nina_df_trans<-as.data.frame(t(Div_hill_nina_df))
+Div_hill_nina_df_trans$Orden<-c(0,1,2)
+
+
+#Neutro
+
+D0_neutro<-hilldiv::hill_div(densidad_neutro_ord, qvalue = 0)
+D1_neutro<-hilldiv::hill_div(densidad_neutro_ord, qvalue = 1)
+D2_neutro<-hilldiv::hill_div(densidad_neutro_ord, qvalue = 2)
+
+
+
+Div_hill_neutro<-base::list(D0_neutro,D1_neutro,D2_neutro)
+Div_hill_neutro_df<-base::as.data.frame(Div_hill_neutro)
+base::colnames(Div_hill_neutro_df)<-c("q0", "q1","q2")
+
+Div_hill_neutro_df_trans<-as.data.frame(t(Div_hill_neutro_df))
+Div_hill_neutro_df_trans$Orden<-c(0,1,2)
+
+```
+
+
+```{r echo=TRUE, warning=FALSE}
+ggplot()+
+  geom_point(aes(y=densidad_nino_ord[["Niño"]], x=seq(1:137)), color ="#d7191c")+
+  geom_point(aes(y=densidad_nina_ord[["Niña"]], x=seq(1:125)), color ="#2c7bb6")+
+  geom_point(aes(y=densidad_neutro_ord[["Neutro"]], x=seq(1:199)), color ="#808080")+
+  scale_y_continuous(trans='log10', limits = function(x){c(min(x), ceiling(100000))})+
+  labs(colour = "", subtitle = "Rango - Abundancia", title="Abundancia Total",  x ="Rango", y =expression(paste("log(abundancia) [ind 10 ", m^-2, "]")),tag="A.")+
+   geom_label(data = Div_hill_nino_df_trans[nrow(Div_hill_nino_df_trans), ],aes(x = 20, y = 10000, label = "Niño"), color = "#d7191c", fill = "white")+
+  geom_label(data = Div_hill_nino_df_trans[nrow(Div_hill_nino_df_trans), ], aes(x = 30, y = 2500, label = "Neutro"), color = "#808080", fill = "white")+
+  geom_label(data = Div_hill_nino_df_trans[nrow(Div_hill_nino_df_trans), ],    aes(x = 10, y = 35000, label = "Niña"), color = "#2c7bb6", fill = "white")+
+  theme_bw()+
+  theme(legend.position="bottom", 
+        axis.text.y =  element_text(size = 8),
+        axis.title =  element_text(size = 8),
+        plot.title = element_text(size = 8),
+        plot.subtitle = element_text(size = 8),
+        plot.caption= element_text(size = 8),
+        plot.tag = element_text(size=8))
+
+```
+
+
+
+
+```{r,echo=TRUE, warning=FALSE}
+
+valor = 60000
+ 
+Calculo_Inext_ENOS<-iNEXT(Diversidad_Total_Enos,q=c(0,1,2),datatype = "abundance",endpoint = valor)
+
+```
+
+
+
+
+
+
+
+
+```{r,echo=TRUE, warning=FALSE}
+
+data_quantity_size<-Calculo_Inext_ENOS[["iNextEst"]][["size_based"]]
+
+
+subset_observed = data_quantity_size%>%
+              subset(Method == "Observed")
+
+subset_Extrapolation = data_quantity_size%>%
+              subset(Method == "Extrapolation")
+
+subset_Rarefaction = data_quantity_size%>%
+              subset(Method == "Rarefaction")
+
+subset_extrapolation_max = subset_Extrapolation%>%
+    subset(m==valor)
+```
+
+```{r,echo=TRUE, warning=FALSE}
+
+grafica_extrapolation <- ggplot() +
+  # Línea sólida para Rarefacción
+  geom_line(data = subset_Rarefaction, aes(x = m, y = qD, color = Assemblage, linetype = "Rarefaction")) +  
+  # Puntos para valores observados
+  geom_point(data = subset_observed, aes(x = m, y = qD, color = Assemblage), size = 2) +  
+  # Línea discontinua para Extrapolación
+  geom_line(data = subset_Extrapolation, aes(x = m, y = qD, color = Assemblage, linetype = "Extrapolation")) +  
+  # Bandas de confianza
+  geom_ribbon(data = subset_Rarefaction, aes(x = m, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  geom_ribbon(data = subset_Extrapolation, aes(x = m, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  # Definir colores de línea
+  scale_color_manual(values = c("Neutro" = "#808080", "Niño" = "#d7191c", "Niña" = "#2c7bb6")) +  
+  # Definir colores de bandas de confianza
+  scale_fill_manual(values = c("Neutro" = "#808080", "Niño" = "#d7191c", "Niña" = "#2c7bb6")) +  
+  # Definir tipos de línea según método
+  scale_linetype_manual(values = c("Rarefaction" = "solid", "Extrapolation" = "dashed")) +  
+  # Separar por orden de diversidad
+  facet_wrap(~ Order.q) +  
+  # Estilo general
+  theme_bw(base_size = 6) +  
+  labs(
+    x = "Número de Individuos",
+    y = "Diversidad de especies"
+  ) +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 9),
+        axis.text = element_text(size = 9),
+        axis.title = element_text(size = 9),
+        strip.text = element_text(size = 9),
+        plot.title = element_text(size = 9),
+        plot.subtitle = element_text(size = 9),
+        plot.caption = element_text(size = 9))
+
+# Mostrar la gráfica
+print(grafica_extrapolation)
+
+```
+
+```{r,echo=TRUE, warning=FALSE}
+
+data_coverage<-Calculo_Inext_ENOS[["iNextEst"]][["coverage_based"]]
+
+
+subset_observed_coverage = data_coverage%>%
+              subset(Method == "Observed")
+
+subset_Extrapolation_coverage = data_coverage%>%
+              subset(Method == "Extrapolation")
+
+subset_Rarefaction_coverage = data_coverage%>%
+              subset(Method == "Rarefaction")
+
+subset_extrapolation_max_coverage = subset_Extrapolation_coverage%>%
+    subset(m==valor)
+```
+
+```{r,echo=TRUE, warning=FALSE}
+
+grafica_extrapolation <- ggplot() +
+  # Línea sólida para Rarefacción
+  geom_line(data = subset_Rarefaction_coverage, aes(x = SC, y = qD, color = Assemblage, linetype = "Rarefaction")) +  
+  # Puntos para valores observados
+  geom_point(data = subset_observed_coverage, aes(x = SC, y = qD, color = Assemblage), size = 2) +  
+  # Línea discontinua para Extrapolación
+  geom_line(data = subset_Extrapolation_coverage, aes(x = SC, y = qD, color = Assemblage, linetype = "Extrapolation")) +  
+  # Bandas de confianza
+  geom_ribbon(data = subset_Rarefaction_coverage, aes(x = SC, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  geom_ribbon(data = subset_Extrapolation_coverage, aes(x = SC, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  # Definir colores de línea
+  scale_color_manual(values = c("Neutro" = "#808080", "Niño" = "#d7191c", "Niña" = "#2c7bb6")) +  
+  # Definir colores de bandas de confianza
+  scale_fill_manual(values = c("Neutro" = "#808080", "Niño" = "#d7191c", "Niña" = "#2c7bb6")) +  
+  # Definir tipos de línea según método
+  scale_linetype_manual(values = c("Rarefaction" = "solid", "Extrapolation" = "dashed")) +  
+  # Separar por orden de diversidad
+  facet_wrap(~ Order.q) +  
+  # Estilo general
+  theme_bw(base_size = 6) +  
+  labs(
+    x = "Cobertura del muestreo",
+    y = "Diversidad de especies"
+  ) +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 9),
+        axis.text = element_text(size = 9),
+        axis.title = element_text(size = 9),
+        strip.text = element_text(size = 9),
+        plot.title = element_text(size = 9),
+        plot.subtitle = element_text(size = 9),
+        plot.caption = element_text(size = 9))
+
+# Mostrar la gráfica
+print(grafica_extrapolation)
+
+```
+
+
+
+```{r,echo=TRUE, warning=FALSE}
+
+ggplot2::ggplot() +
+  geom_line(data = subset_observed, aes(x = Order.q, y = qD , color = Assemblage ),  lwd = 0.5, linetype = 1) +
+  geom_point(data = subset_observed, aes(x = Order.q, y = qD , color = Assemblage ), size =3) +
+    
+  
+  scale_color_manual(values = c("Neutro" = "#808080", "Niño" = "#d7191c", "Niña" = "#2c7bb6")) +  
+  geom_label(data = Div_hill_nino_df_trans[nrow(Div_hill_nino_df_trans), ], 
+           aes(x = 0.1, y = 160, label = "Niño"), color = "#d7191c", fill = "white")+
+  geom_label(data = Div_hill_nino_df_trans[nrow(Div_hill_nino_df_trans), ], 
+           aes(x = 0.15, y = 217, label = "Neutro"), color = "#808080", fill = "white")+
+  geom_label(data = Div_hill_nino_df_trans[nrow(Div_hill_nino_df_trans), ], 
+           aes(x = 0.1, y = 95, label = "Niña"), color = "#2c7bb6", fill = "white")+
+
+  labs(
+    title = "Perfiles de diversidad observada",
+    x = "Orden",
+    y = "Diversidad",
+    color = "Variable") +
+  theme_minimal()+
+   theme(legend.position = "none")  # Elimina la leyenda
+
+```
+
+```{r,echo=TRUE, warning=FALSE}
+
+ggplot2::ggplot() +
+  geom_line(data = subset_extrapolation_max, aes(x = Order.q, y = qD , color = Assemblage ),  lwd = 0.5, linetype = 1) +
+  geom_point(data = subset_extrapolation_max, aes(x = Order.q, y = qD , color = Assemblage ), size =3) +
+    
+  geom_ribbon(data = subset_extrapolation_max, aes(x = Order.q, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  geom_ribbon(data = subset_extrapolation_max, aes(x = Order.q, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +
+   scale_fill_manual(values = c("Neutro" = "#808080", "Niño" = "#d7191c", "Niña" = "#2c7bb6")) + 
+  scale_color_manual(values = c("Neutro" = "#808080", "Niño" = "#d7191c", "Niña" = "#2c7bb6")) +  
+  geom_label(data = Div_hill_nino_df_trans[nrow(Div_hill_nino_df_trans), ], 
+           aes(x = 0.1, y = 160, label = "Niño"), color = "#d7191c", fill = "white")+
+  geom_label(data = Div_hill_nino_df_trans[nrow(Div_hill_nino_df_trans), ], 
+           aes(x = 0.15, y = 217, label = "Neutro"), color = "#808080", fill = "white")+
+  geom_label(data = Div_hill_nino_df_trans[nrow(Div_hill_nino_df_trans), ], 
+           aes(x = 0.1, y = 95, label = "Niña"), color = "#2c7bb6", fill = "white")+
+
+  labs(
+    title = "Perfiles de diversidad estimada ",
+    x = "Orden",
+    y = "Diversidad",
+    color = "Variable") +
+  theme_minimal()+
+   theme(legend.position = "none")  # Elimina la leyenda
+
+```
+
+# Análisis por Cruceros
+
+
+```{r,echo=TRUE, warning=FALSE}
+
+datos_anos<-data_quantity[,c(2,12:267)]
+
+
+datos_anos_trans<-as.data.frame(t(datos_anos %>%
+  group_by(crucero) %>%
+  summarise(across(everything(), sum, na.rm = TRUE))))
+colnames(datos_anos_trans) <- datos_anos_trans[1, ]  # Usa la primera fila como nombres de columna
+datos_anos_trans <- datos_anos_trans[-1, ]  # Elimina la primera fila repetida
+datos_anos_trans <- datos_anos_trans %>%
+  mutate(across(everything(), as.integer))
+reactable(datos_anos_trans)
+```
+
+```{r,echo=TRUE, warning=FALSE}
+
+
+C1993.04<-datos_anos%>%
+        filter(crucero == "1993-04")
+C1993.10<-datos_anos%>%
+        filter(crucero == "1993-10")
+C2004.09<-datos_anos%>%
+        filter(crucero == "2004-09")
+C2005.09<-datos_anos%>%
+        filter(crucero ==  "2005-09")
+C2006.03<-datos_anos%>%
+        filter(crucero == "2006-03")
+C2006.09<-datos_anos%>%
+        filter(crucero == "2006-09")
+
+
+
+C1993.04_total<-as.data.frame(colSums(C1993.04[,2:257]))
+C1993.10_total<-as.data.frame(colSums(C1993.10[,2:257]))
+C2004.09_total<-as.data.frame(colSums(C2004.09[,2:257]))
+C2005.09_total<-as.data.frame(colSums(C2005.09[,2:257]))
+C2006.03_total<-as.data.frame(colSums(C2006.03[,2:257]))
+C2006.09_total<-as.data.frame(colSums(C2006.09[,2:257]))
+
+
+colnames(C1993.04_total)<-c("C1993.04")
+colnames(C1993.10_total)<-c("C1993.10")
+colnames(C2004.09_total)<-c("C2004.09")
+colnames(C2005.09_total)<-c("C2005.09")
+colnames(C2006.03_total)<-c("C2006.03")
+colnames(C2006.09_total)<-c("C2006.09")
+
+
+
+
+
+# Ordenar por la columna A de manera descendente
+C1993.04_ord <- C1993.04_total %>%  arrange(desc(C1993.04))%>%  filter(C1993.04 != 0)
+C1993.10_ord <- C1993.10_total %>%  arrange(desc(C1993.10))%>%  filter(C1993.10 != 0)
+C2004.09_ord <- C2004.09_total %>%  arrange(desc(C2004.09))%>%  filter(C2004.09 != 0)
+C2005.09_ord <- C2005.09_total %>%  arrange(desc(C2005.09))%>%  filter(C2005.09 != 0)
+C2006.03_ord <- C2006.03_total %>%  arrange(desc(C2006.03))%>%  filter(C2006.03 != 0)
+C2006.09_ord <- C2006.09_total %>%  arrange(desc(C2006.09))%>%  filter(C2006.09 != 0)
+
+
+
+colnames(C1993.04_ord)<-c("1993-04")
+colnames(C1993.10_ord)<-c("1993-10")
+colnames(C2004.09_ord)<-c("2004-09")
+colnames(C2005.09_ord)<-c("2005-09")
+colnames(C2006.03_ord)<-c("2006-03")
+colnames(C2006.09_ord)<-c("2006-09")
+
+
+```
+```{r,echo=TRUE, warning=FALSE}
+ggplot() +
+  geom_point(aes(y = C1993.04_ord[["1993-04"]], x = seq_len(79), color = "1993-04")) +
+  geom_point(aes(y = C1993.10_ord[["1993-10"]], x = seq_len(70), color = "1993-10")) +
+  geom_point(aes(y = C2004.09_ord[["2004-09"]], x = seq_len(102), color = "2004-09")) +
+  geom_point(aes(y = C2005.09_ord[["2005-09"]], x = seq_len(146), color = "2005-09")) +
+  geom_point(aes(y = C2006.03_ord[["2006-03"]], x = seq_len(125), color = "2006-03")) +
+  geom_point(aes(y = C2006.09_ord[["2006-09"]], x = seq_len(91), color = "2006-09")) +
+ 
+  
+  scale_y_continuous(trans = 'log10', limits = c(NA, 100000)) +  # Límite corregido
+  labs(
+    colour = "", 
+    subtitle = "Rango - Abundancia", 
+    title = "Abundancia Total",  
+    x = "Rango", 
+    y = expression(paste("log(abundancia) [ind 10 ", m^-2, "]")),
+    tag = "A."
+  ) +
+  scale_color_manual(values = c(
+    "1993-04" = "#e41a1c",
+    "1993-10" = "#377eb8",
+    "2004-09" = "#4daf4a",
+    "2005-09" = "#984ea3",
+    "2006-03" = "#ff7f00",
+    "2006-09" = "#dfc27d"
+    
+  )) + 
+  theme_bw() +
+  theme(
+    legend.position = "bottom", 
+    axis.text.y = element_text(size = 8),
+    axis.title = element_text(size = 8),
+    plot.title = element_text(size = 8),
+    plot.subtitle = element_text(size = 8),
+    plot.caption = element_text(size = 8),
+    plot.tag = element_text(size = 8)
+  )
+
+```       
+        
+```{r,echo=TRUE, warning=FALSE}
+
+valor = 50000
+ 
+Calculo_Inext_cruceros<-iNEXT(datos_anos_trans,q=c(0,1,2),datatype = "abundance",endpoint = valor)
+
+```
+
+```{r,echo=TRUE, warning=FALSE}
+rarefaccion_size_cruceros<-Calculo_Inext_cruceros[["iNextEst"]][["size_based"]]
+
+
+cruceros_subset_observed = rarefaccion_size_cruceros%>%
+              subset(Method == "Observed")
+
+cruceros_subset_Extrapolation = rarefaccion_size_cruceros%>%
+              subset(Method == "Extrapolation")
+
+cruceros_subset_Rarefaction = rarefaccion_size_cruceros%>%
+              subset(Method == "Rarefaction")
+
+cruceros_subset_extrapolation_max = cruceros_subset_Extrapolation%>%
+    subset(m==valor)
+
+```
+
+```{r,echo=TRUE, warning=FALSE, fig.width=10}
+
+ggplot() +
+  # Línea sólida para Rarefacción
+  geom_line(data = cruceros_subset_Rarefaction, aes(x = m, y = qD, color = Assemblage, linetype = "Rarefaction")) +  
+  # Puntos para valores observados
+  geom_point(data = cruceros_subset_observed, aes(x = m, y = qD, color = Assemblage), size = 2) +  
+  # Línea discontinua para Extrapolación
+  geom_line(data = cruceros_subset_Extrapolation, aes(x = m, y = qD, color = Assemblage, linetype = "Extrapolation")) +  
+  # Bandas de confianza
+  geom_ribbon(data = cruceros_subset_Rarefaction, aes(x = m, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  geom_ribbon(data = cruceros_subset_Extrapolation, aes(x = m, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  # Definir colores de línea
+   scale_color_manual(values = c("1993-04" = "#e41a1c",
+                                 "1993-10" = "#377eb8",
+                                 "2004-09" = "#4daf4a",
+                                 "2005-09" = "#984ea3",
+                                 "2006-03" = "#ff7f00",
+                                 "2006-09" = "#dfc27d")) + 
+   scale_fill_manual(values = c("1993-04" = "#e41a1c",
+                                 "1993-10" = "#377eb8",
+                                 "2004-09" = "#4daf4a",
+                                 "2005-09" = "#984ea3",
+                                 "2006-03" = "#ff7f00",
+                                 "2006-09" = "#dfc27d")) +   
+  # Definir tipos de línea según método
+  scale_linetype_manual(values = c("Rarefaction" = "solid", "Extrapolation" = "dashed")) +  
+  # Separar por orden de diversidad
+  facet_wrap(~ Order.q) +  
+  # Estilo general
+  theme_bw(base_size = 6) +  
+  labs(
+    x = "Número de Individuos",
+    y = "Diversidad de especies"
+  ) +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 9),
+        axis.text = element_text(size = 9),
+        axis.title = element_text(size = 9),
+        strip.text = element_text(size = 9),
+        plot.title = element_text(size = 9),
+        plot.subtitle = element_text(size = 9),
+        plot.caption = element_text(size = 9))
+
+```
+
+```{r,echo=TRUE, warning=FALSE, fig.width=10}
+
+cruceros_data_coverage<-Calculo_Inext_cruceros[["iNextEst"]][["coverage_based"]]
+
+
+cruceros_subset_observed_coverage = cruceros_data_coverage%>%
+              subset(Method == "Observed")
+
+cruceros_subset_Extrapolation_coverage = cruceros_data_coverage%>%
+              subset(Method == "Extrapolation")
+
+cruceros_subset_Rarefaction_coverage = cruceros_data_coverage%>%
+              subset(Method == "Rarefaction")
+
+cruceros_subset_extrapolation_max_coverage = subset_Extrapolation_coverage%>%
+    subset(m==valor)
+```
+
+```{r,echo=TRUE, warning=FALSE, fig.width=10}
+
+ggplot() +
+  # Línea sólida para Rarefacción
+  geom_line(data = cruceros_subset_Rarefaction_coverage, aes(x = SC, y = qD, color = Assemblage, linetype = "Rarefaction")) +  
+  # Puntos para valores observados
+  geom_point(data = cruceros_subset_observed_coverage, aes(x = SC, y = qD, color = Assemblage), size = 2) +  
+  # Línea discontinua para Extrapolación
+  geom_line(data = cruceros_subset_Extrapolation_coverage, aes(x = SC, y = qD, color = Assemblage, linetype = "Extrapolation")) +  
+  # Bandas de confianza
+  geom_ribbon(data = cruceros_subset_Rarefaction_coverage, aes(x = SC, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  geom_ribbon(data = cruceros_subset_Extrapolation_coverage, aes(x = SC, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  # Definir colores de línea
+   scale_color_manual(values = c("1993-04" = "#e41a1c",
+                                 "1993-10" = "#377eb8",
+                                 "2004-09" = "#4daf4a",
+                                 "2005-09" = "#984ea3",
+                                 "2006-03" = "#ff7f00",
+                                 "2006-09" = "#dfc27d")) + 
+   scale_fill_manual(values = c("1993-04" = "#e41a1c",
+                                 "1993-10" = "#377eb8",
+                                 "2004-09" = "#4daf4a",
+                                 "2005-09" = "#984ea3",
+                                 "2006-03" = "#ff7f00",
+                                 "2006-09" = "#dfc27d")) + 
+  scale_linetype_manual(values = c("Rarefaction" = "solid", "Extrapolation" = "dashed")) +  
+  # Separar por orden de diversidad
+  facet_wrap(~ Order.q) +  
+  # Estilo general
+  theme_bw(base_size = 6) +  
+  labs(
+    x = "Cobertura del muestreo",
+    y = "Diversidad de especies"
+  ) +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 9),
+        axis.text = element_text(size = 9),
+        axis.title = element_text(size = 9),
+        strip.text = element_text(size = 9),
+        plot.title = element_text(size = 9),
+        plot.subtitle = element_text(size = 9),
+        plot.caption = element_text(size = 9))
+```
+
+```{r,echo=TRUE, warning=FALSE, fig.width=10}
+
+ggplot2::ggplot() +
+  geom_line(data = cruceros_subset_observed, aes(x = Order.q, y = qD , color = Assemblage ),  lwd = 0.5, linetype = 1) +
+  geom_point(data = cruceros_subset_observed, aes(x = Order.q, y = qD , color = Assemblage ), size =3) +
+  
+   scale_color_manual(values = c("1993-04" = "#e41a1c",
+                                 "1993-10" = "#377eb8",
+                                 "2004-09" = "#4daf4a",
+                                 "2005-09" = "#984ea3",
+                                 "2006-03" = "#ff7f00",
+                                 "2006-09" = "#dfc27d")) + 
+
+
+  labs(
+    title = "Perfiles de diversidad observada",
+    x = "Orden",
+    y = "Diversidad",
+    color = "Crucero") +
+  theme_minimal()+
+   theme(legend.position = "bottom")  # Elimina la leyenda
+
+```
+```{r,echo=TRUE, warning=FALSE, fig.width=10}
+
+ggplot2::ggplot() +
+  geom_line(data = cruceros_subset_extrapolation_max, aes(x = Order.q, y = qD , color = Assemblage ),  lwd = 0.5, linetype = 1) +
+  geom_point(data = cruceros_subset_extrapolation_max, aes(x = Order.q, y = qD , color = Assemblage ), size =3) +
+  geom_ribbon(data = cruceros_subset_extrapolation_max, aes(x = Order.q, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  geom_ribbon(data = cruceros_subset_extrapolation_max, aes(x = Order.q, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +
+  
+   scale_color_manual(values = c("1993-04" = "#e41a1c",
+                                 "1993-10" = "#377eb8",
+                                 "2004-09" = "#4daf4a",
+                                 "2005-09" = "#984ea3",
+                                 "2006-03" = "#ff7f00",
+                                 "2006-09" = "#dfc27d")) + 
+   scale_fill_manual(values = c("1993-04" = "#e41a1c",
+                                 "1993-10" = "#377eb8",
+                                 "2004-09" = "#4daf4a",
+                                 "2005-09" = "#984ea3",
+                                 "2006-03" = "#ff7f00",
+                                 "2006-09" = "#dfc27d")) + 
+
+
+  labs(
+    title = "Perfiles de diversidad estimada",
+    x = "Orden",
+    y = "Diversidad",
+    color = "Crucero",
+    fill = "Intervalo de Confianza") +
+  theme_minimal()+
+   theme(legend.position = "bottom")  # Elimina la leyenda
+
+```
+
+
+```{r,echo=TRUE, warning=FALSE, fig.width=10}
+
+ggplot2::ggplot() +
+  geom_line(data = cruceros_subset_extrapolation_max, aes(x = Order.q, y = qD , color = Assemblage ),  lwd = 0.5, linetype = 1) +
+  geom_point(data = cruceros_subset_extrapolation_max, aes(x = Order.q, y = qD , color = Assemblage ), size =3) +
+  geom_ribbon(data = cruceros_subset_extrapolation_max, aes(x = Order.q, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +  
+  geom_ribbon(data = cruceros_subset_extrapolation_max, aes(x = Order.q, ymin = qD.LCL, ymax = qD.UCL, fill = Assemblage), alpha = 0.2) +
+  
+   scale_color_manual(values = c("1993-04" = "#e41a1c",
+                                 "1993-10" = "#377eb8",
+                                 "2004-09" = "#4daf4a",
+                                 "2005-09" = "#984ea3",
+                                 "2006-03" = "#ff7f00",
+                                 "2006-09" = "#dfc27d")) + 
+   scale_fill_manual(values = c("1993-04" = "#e41a1c",
+                                 "1993-10" = "#377eb8",
+                                 "2004-09" = "#4daf4a",
+                                 "2005-09" = "#984ea3",
+                                 "2006-03" = "#ff7f00",
+                                 "2006-09" = "#dfc27d")) + 
+
+
+  labs(
+    title = "Perfiles de diversidad estimada",
+    x = "Orden",
+    y = "Diversidad",
+    color = "Crucero",
+    fill = "Intervalo de Confianza") +
+  theme_minimal()+
+   theme(legend.position = "bottom")  # Elimina la leyenda
+
+```
+
+```{r,echo=TRUE, warning=FALSE, fig.width=10}
+library(ggplot2)
+
+# Crear dataframe de fechas de cruceros
+cruceros <- data.frame(date = as.Date(c("1993-04-01", "1993-10-01",
+                                        "2004-09-01", "2005-09-01",
+                                        "2006-03-01", "2006-09-01")))
+
+# Filtrar datos por orden de diversidad
+q0 <- cruceros_subset_observed %>% subset(Order.q == 0)
+q1 <- cruceros_subset_observed %>% subset(Order.q == 1)
+q2 <- cruceros_subset_observed %>% subset(Order.q == 2)
+
+# Agregar datos de diversidad a 'cruceros'
+cruceros$q0 <- q0$qD
+cruceros$q1 <- q1$qD
+cruceros$q2 <- q2$qD
+
+# Convertir a formato largo para ggplot2
+cruceros_long <- tidyr::pivot_longer(cruceros, cols = c(q0, q1, q2), 
+                                     names_to = "Diversidad", values_to = "Valor")
+
+# Asignar colores a cada índice de diversidad
+colores_diversidad <- c("q0" = "#1b9e77", "q1" = "#d95f02", "q2" = "#7570b3")
+
+# Gráfica con leyenda para las líneas
+ggplot(cruceros_long, aes(x = date, y = Valor, color = Diversidad)) + 
+  geom_line(size = 1) +  
+  geom_point(size = 2) +
+
+  scale_x_date(limits = c(as.Date("1993-01-01"), as.Date("2006-12-31")), 
+               date_labels = "%Y", date_breaks = "2 years") +
+  
+  scale_color_manual(values = colores_diversidad, 
+                     labels = c("q0" = "Diversidad q0", 
+                                "q1" = "Diversidad q1", 
+                                "q2" = "Diversidad q2")) +
+  
+  labs(
+    x = "Fecha", 
+    y = "Índice de Diversidad",
+    color = "Número de especies",  # Título de la leyenda
+    title = "Comportamiento de la diversidad en cada crucero"
+  ) +
+  
+  theme_bw(base_size = 12) +
+  theme(legend.position = "bottom")
+
+
+```
+
+
+### Mapas de distribución.
