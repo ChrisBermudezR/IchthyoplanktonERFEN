@@ -1,0 +1,6 @@
+mapas_individuales(erfen_1993_04, erfen_1993_04_BIOV_ZOO,  "ERFEN9304", "1993-04")
+mapas_individuales(erfen_1993_10, erfen_1993_10_BIOV_ZOO,  "ERFEN9310", "1993-10")
+mapas_individuales(erfen_2004_09, erfen_2004_09_BIOV_ZOO,  "ERFEN0409", "2004-09")
+mapas_individuales(erfen_2005_09, erfen_2005_09_BIOV_ZOO,  "ERFEN0509", "2005-09")
+mapas_individuales(erfen_2006_03, erfen_2006_03_BIOV_ZOO,  "ERFEN0603", "2006-03")
+mapas_individuales(erfen_2006_09, erfen_2006_09_BIOV_ZOO,  "ERFEN0609", "2006-09")

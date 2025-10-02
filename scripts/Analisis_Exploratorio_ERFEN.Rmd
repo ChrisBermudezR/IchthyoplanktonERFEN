@@ -948,4 +948,15 @@ ggplot(cruceros_long, aes(x = date, y = Valor, color = Diversidad)) +
 ```
 
 
-### Mapas de distribución.
+# Mapas de distribución.
+
+## Biovolumen
+
+```{r, echo=TRUE, warning=FALSE, fig.width=10, fig.height=10}
+knitr::include_graphics("../outputs/mapas/biovolumen_log_10.png")
+```
+
+## Densidad de Huevos
+
+
+## Densidad de Larvas
