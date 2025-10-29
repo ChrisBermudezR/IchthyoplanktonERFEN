@@ -6,7 +6,7 @@ if(!require(ggplot2)) install.packages("ggplot2")
 if(!require(dplyr)) install.packages("dplyr")
 if(!require(patchwork)) install.packages("patchwork")
 
-data<-readxl::read_excel("./data/raw/maps/Mapas_PELAGDEMER_Christian.xlsx", sheet="mapas")
+data<-readxl::read_excel("./data/raw/maps/Mapas_PELAGDEMER_Christian.xlsx", sheet="mapas_last")
 
 
 ###Mapas####
@@ -132,21 +132,35 @@ mapas_individuales <- function(crucero_fecha, fecha) {
 }
 
 pelagicos_1991_02_BIOV_ZOO <- mapas_individuales("PELAG9102", '1991-02')
-pelagicos_1991_03_BIOV_ZOO <- mapas_individuales("PELAG9103", '1991-03')
 pelagicos_1991_09_BIOV_ZOO <- mapas_individuales("PELAG9109", '1991-09')
 pelagicos_1991_12_BIOV_ZOO <- mapas_individuales("PELAG9112", '1991-12')
 pelagicos_1993_01_BIOV_ZOO <- mapas_individuales("PELAG9301", '1993-01')
 pelagicos_1993_11_BIOV_ZOO <- mapas_individuales("PELAG9311", '1993-11')
+pelagicos_1994_04_BIOV_ZOO <- mapas_individuales("PELAG9404", '1994-04')
 
 
-
+# Primero define tu matriz de diseño
+layout_matrix1 <- "
+AABB
+AABB
+CCDD
+CCDD
+EEFF
+EEFF
+"
 
 final_plot2 <- (
-  (pelagicos_1991_02_BIOV_ZOO | pelagicos_1991_03_BIOV_ZOO) /
-    (pelagicos_1991_09_BIOV_ZOO | pelagicos_1991_12_BIOV_ZOO) /
-    (pelagicos_1993_01_BIOV_ZOO | pelagicos_1993_11_BIOV_ZOO)
+  pelagicos_1991_02_BIOV_ZOO +
+    pelagicos_1991_09_BIOV_ZOO +
+    pelagicos_1991_12_BIOV_ZOO +
+    pelagicos_1993_01_BIOV_ZOO +
+    pelagicos_1993_11_BIOV_ZOO +
+    pelagicos_1994_04_BIOV_ZOO
 ) +
-  patchwork::plot_layout(guides = "collect") +
+  patchwork::plot_layout(
+    design = layout_matrix1,
+    guides = "collect"
+  ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
@@ -157,48 +171,52 @@ png(filename="./outputs/mapas/Pelagicos_biovolumen_log_10_01.png", height = 28, 
 final_plot2
 dev.off()
 
-pelagicos_1994_04_BIOV_ZOO <- mapas_individuales("PELAG9404", '1994-04')
+
 pelagicos_1994_07_BIOV_ZOO <- mapas_individuales("PELAG9407", '1994-07')
 pelagicos_1994_12_BIOV_ZOO <- mapas_individuales("PELAG9412", '1994-12')
 pelagicos_1995_06_BIOV_ZOO <- mapas_individuales("PELAG950607", '1995-06')
 pelagicos_2008_12_BIOV_ZOO <- mapas_individuales("PELAG0812", '2008-12')
 pelagicos_2009_12_BIOV_ZOO <- mapas_individuales("PELAG0912", '2009-12')
-
-
-
-final_plot3 <- (
-  (pelagicos_1994_04_BIOV_ZOO | pelagicos_1994_07_BIOV_ZOO) /
-    (pelagicos_1994_12_BIOV_ZOO | pelagicos_1995_06_BIOV_ZOO) /
-    (pelagicos_2008_12_BIOV_ZOO | pelagicos_2009_12_BIOV_ZOO)
-) +
-  patchwork::plot_layout(guides = "collect") +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-final_plot3
-
-# Mapas totales
-png(filename="./outputs/mapas/Pelagicos_biovolumen_log_10_02.png", height = 28, width =  15, units = "cm", res = 300, pointsize = 12)
-final_plot3
-dev.off()
-
 pelagicos_1996_05_BIOV_ZOO <- mapas_individuales("DEMER 9605", '1996-05')
 pelagicos_1996_11_BIOV_ZOO <- mapas_individuales("DEMER 9611", '1996-11')
 
+layout_matrix2 <- "
+AABB
+AABB
+CCDD
+CCDD
+EEFF
+EEFF
+GGHH
+GGHH
+"
 
-final_plot4 <- (
-  (pelagicos_1996_05_BIOV_ZOO | pelagicos_1996_11_BIOV_ZOO) 
+
+final_plot3 <- (
+    pelagicos_1994_07_BIOV_ZOO +
+    pelagicos_1994_12_BIOV_ZOO +
+    pelagicos_1995_06_BIOV_ZOO +
+    pelagicos_1996_05_BIOV_ZOO +
+    pelagicos_1996_11_BIOV_ZOO+
+    pelagicos_2008_12_BIOV_ZOO +
+    pelagicos_2009_12_BIOV_ZOO 
+    
 ) +
-  patchwork::plot_layout(guides = "collect") +
+  patchwork::plot_layout(
+    design = layout_matrix2,
+    guides = "collect"
+  ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
-final_plot4
+final_plot3
 
 # Mapas totales
-png(filename="./outputs/mapas/Pelagicos_biovolumen_log_10_03.png", height = 15, width =  20, units = "cm", res = 300, pointsize = 12)
-final_plot4
+png(filename="./outputs/mapas/Pelagicos_biovolumen_log_10_02.png", height = 30, width =  15, units = "cm", res = 300, pointsize = 12)
+final_plot3
 dev.off()
+
+
 
 ### Huevos ####
 
@@ -312,74 +330,97 @@ mapas_individuales <- function(crucero_fecha, fecha) {
   return(mapa)
 }
 
+
+
+
 pelagicos_1991_02_Huevos <- mapas_individuales("PELAG9102", '1991-02')
-pelagicos_1991_03_Huevos <- mapas_individuales("PELAG9103", '1991-03')
 pelagicos_1991_09_Huevos <- mapas_individuales("PELAG9109", '1991-09')
 pelagicos_1991_12_Huevos <- mapas_individuales("PELAG9112", '1991-12')
 pelagicos_1993_01_Huevos <- mapas_individuales("PELAG9301", '1993-01')
 pelagicos_1993_11_Huevos <- mapas_individuales("PELAG9311", '1993-11')
+pelagicos_1994_04_Huevos <- mapas_individuales("PELAG9404", '1994-04')
 
 
+# Primero define tu matriz de diseño
+layout_matrix1 <- "
+AABB
+AABB
+CCDD
+CCDD
+EEFF
+EEFF
+"
 
 
 final_plot2 <- (
-  (pelagicos_1991_02_Huevos | pelagicos_1991_03_Huevos) /
-    (pelagicos_1991_09_Huevos | pelagicos_1991_12_Huevos) /
-    (pelagicos_1993_01_Huevos | pelagicos_1993_11_Huevos)
+  pelagicos_1991_02_Huevos +
+    pelagicos_1991_09_Huevos +
+    pelagicos_1991_12_Huevos +
+    pelagicos_1993_01_Huevos +
+    pelagicos_1993_11_Huevos +
+    pelagicos_1994_04_Huevos
 ) +
-  patchwork::plot_layout(guides = "collect") +
+  patchwork::plot_layout(
+    design = layout_matrix1,
+    guides = "collect"
+  ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
 final_plot2
+
+
 
 # Mapas totales
 png(filename="./outputs/mapas/Pelagicos_Huevos_log_10_01.png", height = 28, width =  15, units = "cm", res = 300, pointsize = 12)
 final_plot2
 dev.off()
 
-pelagicos_1994_04_Huevos <- mapas_individuales("PELAG9404", '1994-04')
+
 pelagicos_1994_07_Huevos <- mapas_individuales("PELAG9407", '1994-07')
 pelagicos_1994_12_Huevos <- mapas_individuales("PELAG9412", '1994-12')
 pelagicos_1995_06_Huevos <- mapas_individuales("PELAG950607", '1995-06')
+pelagicos_1996_05_Huevos <- mapas_individuales("DEMER 9605", '1996-05')
+pelagicos_1996_11_Huevos <- mapas_individuales("DEMER 9611", '1996-11')
 pelagicos_2008_12_Huevos <- mapas_individuales("PELAG0812", '2008-12')
 pelagicos_2009_12_Huevos <- mapas_individuales("PELAG0912", '2009-12')
 
 
+layout_matrix2 <- "
+AABB
+AABB
+CCDD
+CCDD
+EEFF
+EEFF
+GGHH
+GGHH
+"
 
-final_plot3 <- (
-  (pelagicos_1994_04_Huevos | pelagicos_1994_07_Huevos) /
-    (pelagicos_1994_12_Huevos | pelagicos_1995_06_Huevos) /
-    (pelagicos_2008_12_Huevos | pelagicos_2009_12_Huevos)
+final_plot2 <- (
+  pelagicos_1994_07_Huevos +
+    pelagicos_1994_12_Huevos +
+    pelagicos_1995_06_Huevos +
+    pelagicos_1996_05_Huevos +
+    pelagicos_1996_11_Huevos +
+    pelagicos_2008_12_Huevos +
+    pelagicos_2009_12_Huevos
 ) +
-  patchwork::plot_layout(guides = "collect") +
+  patchwork::plot_layout(
+    design = layout_matrix2,
+    guides = "collect"
+  ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
-final_plot3
+final_plot2
 
 # Mapas totales
 png(filename="./outputs/mapas/Pelagicos_Huevos_log_10_02.png", height = 28, width =  15, units = "cm", res = 300, pointsize = 12)
-final_plot3
+final_plot2
 dev.off()
 
-pelagicos_1996_05_Huevos <- mapas_individuales("DEMER 9605", '1996-05')
-pelagicos_1996_11_Huevos <- mapas_individuales("DEMER 9611", '1996-11')
 
-
-final_plot4 <- (
-  (pelagicos_1996_05_Huevos | pelagicos_1996_11_Huevos) 
-) +
-  patchwork::plot_layout(guides = "collect") +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-final_plot4
-
-# Mapas totales
-png(filename="./outputs/mapas/Pelagicos_Huevos_log_10_03.png", height = 15, width =  18, units = "cm", res = 300, pointsize = 12)
-final_plot4
-dev.off()
 
 #LARVAS####
 
@@ -492,46 +533,81 @@ mapas_individuales <- function(crucero_fecha, fecha) {
 }
 
 pelagicos_1991_02_larvas <- mapas_individuales("PELAG9102", '1991-02')
-pelagicos_1991_03_larvas <- mapas_individuales("PELAG9103", '1991-03')
 pelagicos_1991_09_larvas <- mapas_individuales("PELAG9109", '1991-09')
 pelagicos_1991_12_larvas <- mapas_individuales("PELAG9112", '1991-12')
 pelagicos_1993_01_larvas <- mapas_individuales("PELAG9301", '1993-01')
 pelagicos_1993_11_larvas <- mapas_individuales("PELAG9311", '1993-11')
+pelagicos_1994_04_larvas <- mapas_individuales("PELAG9404", '1994-04')
 
 
+# Primero define tu matriz de diseño
+layout_matrix1 <- "
+AABB
+AABB
+CCDD
+CCDD
+EEFF
+EEFF
+"
 
 
 final_plot2 <- (
-  (pelagicos_1991_02_larvas | pelagicos_1991_03_larvas) /
-    (pelagicos_1991_09_larvas | pelagicos_1991_12_larvas) /
-    (pelagicos_1993_01_larvas | pelagicos_1993_11_larvas)
+  pelagicos_1991_02_larvas +
+    pelagicos_1991_09_larvas +
+    pelagicos_1991_12_larvas +
+    pelagicos_1993_01_larvas +
+    pelagicos_1993_11_larvas +
+    pelagicos_1994_04_larvas
 ) +
-  patchwork::plot_layout(guides = "collect") +
+  patchwork::plot_layout(
+    design = layout_matrix1,
+    guides = "collect"
+  ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
 final_plot2
+
 
 # Mapas totales
 png(filename="./outputs/mapas/Pelagicos_larvas_log_10_01.png", height = 28, width =  15, units = "cm", res = 300, pointsize = 12)
 final_plot2
 dev.off()
 
-pelagicos_1994_04_larvas <- mapas_individuales("PELAG9404", '1994-04')
+
 pelagicos_1994_07_larvas <- mapas_individuales("PELAG9407", '1994-07')
 pelagicos_1994_12_larvas <- mapas_individuales("PELAG9412", '1994-12')
 pelagicos_1995_06_larvas <- mapas_individuales("PELAG950607", '1995-06')
+pelagicos_1996_05_larvas <- mapas_individuales("DEMER 9605", '1996-05')
+pelagicos_1996_11_larvas <- mapas_individuales("DEMER 9611", '1996-11')
 pelagicos_2008_12_larvas <- mapas_individuales("PELAG0812", '2008-12')
 pelagicos_2009_12_larvas <- mapas_individuales("PELAG0912", '2009-12')
 
 
+layout_matrix2 <- "
+AABB
+AABB
+CCDD
+CCDD
+EEFF
+EEFF
+GGHH
+GGHH
+"
 
 final_plot3 <- (
-  (pelagicos_1994_04_larvas | pelagicos_1994_07_larvas) /
-    (pelagicos_1994_12_larvas | pelagicos_1995_06_larvas) /
-    (pelagicos_2008_12_larvas | pelagicos_2009_12_larvas)
+  pelagicos_1994_07_larvas +
+    pelagicos_1994_12_larvas +
+    pelagicos_1995_06_larvas +
+    pelagicos_1996_05_larvas +
+    pelagicos_1996_11_larvas +
+    pelagicos_2008_12_larvas +
+    pelagicos_2009_12_larvas
 ) +
-  patchwork::plot_layout(guides = "collect") +
+  patchwork::plot_layout(
+    design = layout_matrix2,
+    guides = "collect"
+  ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
@@ -542,22 +618,8 @@ png(filename="./outputs/mapas/Pelagicos_larvas_log_10_02.png", height = 28, widt
 final_plot3
 dev.off()
 
-pelagicos_1996_05_larvas <- mapas_individuales("DEMER 9605", '1996-05')
-pelagicos_1996_11_larvas <- mapas_individuales("DEMER 9611", '1996-11')
 
 
-final_plot4 <- (
-  (pelagicos_1996_05_larvas | pelagicos_1996_11_larvas) 
-) +
-  patchwork::plot_layout(guides = "collect") +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
 
-final_plot4
-
-# Mapas totales
-png(filename="./outputs/mapas/Pelagicos_larvas_log_10_03.png", height = 15, width =  20, units = "cm", res = 300, pointsize = 12)
-final_plot4
-dev.off()
 
 

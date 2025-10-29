@@ -132,17 +132,13 @@ final_plot <- (
 
 final_plot
 
-
-
-
-
 # Mapas totales
 png(filename="./outputs/mapas/ERFEN_biovolumen_log_10.png", height = 20, width =  20, units = "cm", res = 300, pointsize = 12)
 final_plot
 dev.off()
 
 
-### Huevos ####
+  ### Huevos ####
 
 
 #Función para la construcción del mapa
