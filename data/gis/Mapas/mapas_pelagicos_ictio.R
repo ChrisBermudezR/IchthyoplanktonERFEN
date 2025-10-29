@@ -83,11 +83,11 @@ Mapas_graficas_biovolumen <- function(data, titulo, subtitulo, leyenda) {
   
     
     scale_size_manual(
-      values = c("1–10" = 2,
-                 "10–100" = 3,
-                 "100–1000" = 4,
-                 "1000–10000" = 5,
-                 "10000–100000" = 6),
+      values = c("1–10" = 1,
+                 "10–100" = 2,
+                 "100–1000" = 3,
+                 "1000–10000" = 4,
+                 "10000–100000" = 5),
       drop = FALSE,
       guide = guide_legend(override.aes = list(shape = 16))
     ) +
