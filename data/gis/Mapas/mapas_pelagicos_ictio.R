@@ -136,147 +136,123 @@ mapas_individuales <- function(crucero_fecha, fecha) {
 pelagicos_1991_02_BIOV_ZOO <- mapas_individuales("PELAG9102", '1991-02')
 pelagicos_1991_09_BIOV_ZOO <- mapas_individuales("PELAG9109", '1991-09')
 pelagicos_1991_12_BIOV_ZOO <- mapas_individuales("PELAG9112", '1991-12')
-
 pelagicos_1993_01_BIOV_ZOO <- mapas_individuales("PELAG9301", '1993-01')
 pelagicos_1993_11_BIOV_ZOO <- mapas_individuales("PELAG9311", '1993-11')
-
 pelagicos_1994_04_BIOV_ZOO <- mapas_individuales("PELAG9404", '1994-04')
 pelagicos_1994_07_BIOV_ZOO <- mapas_individuales("PELAG9407", '1994-07')
 pelagicos_1994_12_BIOV_ZOO <- mapas_individuales("PELAG9412", '1994-12')
 
 pelagicos_1995_06_BIOV_ZOO <- mapas_individuales("PELAG950607", '1995-06')
-
 pelagicos_1996_05_BIOV_ZOO <- mapas_individuales("DEMER 9605", '1996-05')
 pelagicos_1996_11_BIOV_ZOO <- mapas_individuales("DEMER 9611", '1996-11')
-
 pelagicos_2008_12_BIOV_ZOO <- mapas_individuales("PELAG0812", '2008-12')
 pelagicos_2009_12_BIOV_ZOO <- mapas_individuales("PELAG0912", '2009-12')
+
+
+plots <- list(
+  pelagicos_1991_02_BIOV_ZOO = pelagicos_1991_02_BIOV_ZOO,
+  pelagicos_1991_09_BIOV_ZOO = pelagicos_1991_09_BIOV_ZOO,
+  pelagicos_1991_12_BIOV_ZOO = pelagicos_1991_12_BIOV_ZOO,
+  pelagicos_1993_01_BIOV_ZOO = pelagicos_1993_01_BIOV_ZOO,
+  pelagicos_1993_11_BIOV_ZOO = pelagicos_1993_11_BIOV_ZOO,
+  pelagicos_1994_04_BIOV_ZOO = pelagicos_1994_04_BIOV_ZOO,
+  pelagicos_1994_07_BIOV_ZOO = pelagicos_1994_07_BIOV_ZOO,
+  pelagicos_1994_12_BIOV_ZOO = pelagicos_1994_12_BIOV_ZOO,
+  pelagicos_1995_06_BIOV_ZOO = pelagicos_1995_06_BIOV_ZOO,
+  pelagicos_1996_05_BIOV_ZOO = pelagicos_1996_05_BIOV_ZOO,
+  pelagicos_1996_11_BIOV_ZOO = pelagicos_1996_11_BIOV_ZOO,
+  pelagicos_2008_12_BIOV_ZOO = pelagicos_2008_12_BIOV_ZOO,
+  pelagicos_2009_12_BIOV_ZOO = pelagicos_2009_12_BIOV_ZOO
+)
+
+outdir <- "./outputs/mapas/individuales"
+
+exportar_png <- function(p, nombre,
+                         outdir = "./outputs/mapas/individuales",
+                         width_cm = 15, height_cm = 18, res = 150, pointsize = 12) {
+  # Construir filename con el mismo nombre del objeto
+  filename <- file.path(outdir, paste0(nombre, ".png"))
+  # Abrir dispositivo
+  png(filename = filename, height = height_cm, width = width_cm,
+      units = "cm", res = res, pointsize = pointsize)
+  # Imprimir (soporta ggplot y base)
+  print(p)
+  dev.off()
+}
+
+
+for (nm in names(plots)) {
+  exportar_png(plots[[nm]], nm,
+               outdir = outdir,
+               width_cm = 15, height_cm = 18, res = 150, pointsize = 12)
+}
 
 
 # Biomasa 1991 
 
 
-layout_matrix1991 <- "
+layout_matrix01 <- "
 AABB
 AABB
 CCDD
 CCDD
+EEFF
+EEFF
 "
 
-plot1991<- (
+plot01<- (
   pelagicos_1991_02_BIOV_ZOO +
     pelagicos_1991_09_BIOV_ZOO +
-    pelagicos_1991_12_BIOV_ZOO 
+    pelagicos_1991_12_BIOV_ZOO +
+    pelagicos_1993_01_BIOV_ZOO +
+    pelagicos_1993_11_BIOV_ZOO +
+    pelagicos_1994_04_BIOV_ZOO 
+    
 ) +
   patchwork::plot_layout(
-    design = layout_matrix1991,
+    design = layout_matrix01,
     guides = "collect"
   ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
-png(filename="./outputs/mapas/Pelagicos_biovolumen_plot1991.png", height = 18, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1991
+png(filename="./outputs/mapas/Pelagicos_biovolumen_plot01.png", height = 25, width =  15, units = "cm", res = 200, pointsize = 12)
+plot01
 dev.off()
 
-# Biomasa 1993
-
-layout_matrix1993 <- "
-AABB
-AABB
-"
-
-plot1993<- (
-  pelagicos_1993_01_BIOV_ZOO +
-    pelagicos_1993_11_BIOV_ZOO 
-) +
-  patchwork::plot_layout(
-    design = layout_matrix1993,
-    guides = "collect"
-  ) +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-png(filename="./outputs/mapas/Pelagicos_biovolumen_plot1993.png", height = 10, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1993
-dev.off()
-
-# Biomasa 1994
-
-layout_matrix1994 <- "
+layout_matrix02 <- "
 AABB
 AABB
 CCDD
 CCDD
+EEFF
+EEFF
+GGHH
+GGHH
 "
 
-plot1994<- (
-  pelagicos_1994_04_BIOV_ZOO +
-    pelagicos_1994_07_BIOV_ZOO +
-    pelagicos_1994_12_BIOV_ZOO
+plot02<- (
+  pelagicos_1994_07_BIOV_ZOO +
+    pelagicos_1994_12_BIOV_ZOO +
+    pelagicos_1995_06_BIOV_ZOO +
+    pelagicos_1996_05_BIOV_ZOO +
+    pelagicos_1996_11_BIOV_ZOO +
+    pelagicos_2008_12_BIOV_ZOO +
+    pelagicos_2009_12_BIOV_ZOO
+  
 ) +
   patchwork::plot_layout(
-    design = layout_matrix1994,
+    design = layout_matrix02,
     guides = "collect"
   ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
-png(filename="./outputs/mapas/Pelagicos_biovolumen_plot1994.png", height = 18, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1994
-dev.off()
-
-# Biomasa 1995
-
-
-png(filename="./outputs/mapas/Pelagicos_biovolumen_plot1995.png", height = 10, width =  12, units = "cm", res = 150, pointsize = 12)
-pelagicos_1995_06_BIOV_ZOO
+png(filename="./outputs/mapas/Pelagicos_biovolumen_plot02.png", height = 30, width =  15, units = "cm", res = 200, pointsize = 12)
+plot02
 dev.off()
 
 
-# Biomasa 1996
-
-layout_matrix1996 <- "
-AABB
-AABB
-"
-
-plot1996<- (
-  pelagicos_1996_05_BIOV_ZOO +
-    pelagicos_1996_11_BIOV_ZOO 
-) +
-  patchwork::plot_layout(
-    design = layout_matrix1996,
-    guides = "collect"
-  ) +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-png(filename="./outputs/mapas/Pelagicos_biovolumen_plot1996.png", height = 10, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1996
-dev.off()
-
-# Biomasa 2008-2009
-
-layout_matrix2008_2009 <- "
-AABB
-AABB
-"
-
-plot2008_2009<- (
-  pelagicos_2008_12_BIOV_ZOO +
-    pelagicos_2009_12_BIOV_ZOO 
-) +
-  patchwork::plot_layout(
-    design = layout_matrix2008_2009,
-    guides = "collect"
-  ) +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-png(filename="./outputs/mapas/Pelagicos_biovolumen_plot2008_2009.png", height = 10, width =  15, units = "cm", res = 150, pointsize = 12)
-plot2008_2009
-dev.off()
 
 ### Huevos ####
 
@@ -396,146 +372,102 @@ mapas_individuales <- function(crucero_fecha, fecha) {
 pelagicos_1991_02_Huevos <- mapas_individuales("PELAG9102", '1991-02')
 pelagicos_1991_09_Huevos <- mapas_individuales("PELAG9109", '1991-09')
 pelagicos_1991_12_Huevos <- mapas_individuales("PELAG9112", '1991-12')
-
 pelagicos_1993_01_Huevos <- mapas_individuales("PELAG9301", '1993-01')
 pelagicos_1993_11_Huevos <- mapas_individuales("PELAG9311", '1993-11')
-
 pelagicos_1994_04_Huevos <- mapas_individuales("PELAG9404", '1994-04')
 pelagicos_1994_07_Huevos <- mapas_individuales("PELAG9407", '1994-07')
 pelagicos_1994_12_Huevos <- mapas_individuales("PELAG9412", '1994-12')
-
 pelagicos_1995_06_Huevos <- mapas_individuales("PELAG950607", '1995-06')
-
 pelagicos_1996_05_Huevos <- mapas_individuales("DEMER 9605", '1996-05')
 pelagicos_1996_11_Huevos <- mapas_individuales("DEMER 9611", '1996-11')
-
 pelagicos_2008_12_Huevos <- mapas_individuales("PELAG0812", '2008-12')
 pelagicos_2009_12_Huevos <- mapas_individuales("PELAG0912", '2009-12')
 
 
-# Huevos 1991 
+plots <- list(
+  pelagicos_1991_02_Huevos = pelagicos_1991_02_Huevos,
+  pelagicos_1991_09_Huevos = pelagicos_1991_09_Huevos,
+  pelagicos_1991_12_Huevos = pelagicos_1991_12_Huevos,
+  pelagicos_1993_01_Huevos = pelagicos_1993_01_Huevos,
+  pelagicos_1993_11_Huevos = pelagicos_1993_11_Huevos,
+  pelagicos_1994_04_Huevos = pelagicos_1994_04_Huevos,
+  pelagicos_1994_07_Huevos = pelagicos_1994_07_Huevos,
+  pelagicos_1994_12_Huevos = pelagicos_1994_12_Huevos,
+  pelagicos_1995_06_Huevos = pelagicos_1995_06_Huevos,
+  pelagicos_1996_05_Huevos = pelagicos_1996_05_Huevos,
+  pelagicos_1996_11_Huevos = pelagicos_1996_11_Huevos,
+  pelagicos_2008_12_Huevos = pelagicos_2008_12_Huevos,
+  pelagicos_2009_12_Huevos = pelagicos_2009_12_Huevos
+)
 
 
-layout_matrix1991 <- "
+for (nm in names(plots)) {
+  exportar_png(plots[[nm]], nm,
+               outdir = outdir,
+               width_cm = 15, height_cm = 18, res = 150, pointsize = 12)
+}
+
+
+
+layout_matrix01 <- "
 AABB
 AABB
 CCDD
 CCDD
+EEFF
+EEFF
 "
 
-plot1991<- (
+plot01<- (
   pelagicos_1991_02_Huevos +
     pelagicos_1991_09_Huevos +
-    pelagicos_1991_12_Huevos 
+    pelagicos_1991_12_Huevos +
+    pelagicos_1993_01_Huevos +
+    pelagicos_1993_11_Huevos +
+    pelagicos_1994_04_Huevos 
+  
 ) +
   patchwork::plot_layout(
-    design = layout_matrix1991,
+    design = layout_matrix01,
     guides = "collect"
   ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
-png(filename="./outputs/mapas/Pelagicos_Huevos_plot1991.png", height = 18, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1991
+png(filename="./outputs/mapas/Pelagicos_huevos_plot01.png", height = 25, width =  15, units = "cm", res = 200, pointsize = 12)
+plot01
 dev.off()
 
-# Huevos 1993
-
-layout_matrix1993 <- "
-AABB
-AABB
-"
-
-plot1993<- (
-  pelagicos_1993_01_Huevos +
-    pelagicos_1993_11_Huevos 
-) +
-  patchwork::plot_layout(
-    design = layout_matrix1993,
-    guides = "collect"
-  ) +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-png(filename="./outputs/mapas/Pelagicos_Huevos_plot1993.png", height = 10, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1993
-dev.off()
-
-# Huevos 1994
-
-layout_matrix1994 <- "
+layout_matrix02 <- "
 AABB
 AABB
 CCDD
 CCDD
+EEFF
+EEFF
+GGHH
+GGHH
 "
 
-plot1994<- (
-  pelagicos_1994_04_Huevos +
-    pelagicos_1994_07_Huevos +
-    pelagicos_1994_12_Huevos
+plot02<- (
+  pelagicos_1994_07_Huevos +
+    pelagicos_1994_12_Huevos +
+    pelagicos_1995_06_Huevos +
+    pelagicos_1996_05_Huevos +
+    pelagicos_1996_11_Huevos +
+    pelagicos_2008_12_Huevos +
+    pelagicos_2009_12_Huevos
+  
 ) +
   patchwork::plot_layout(
-    design = layout_matrix1994,
+    design = layout_matrix02,
     guides = "collect"
   ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
-png(filename="./outputs/mapas/Pelagicos_Huevos_plot1994.png", height = 18, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1994
-dev.off()
-
-# Huevos 1995
-
-
-png(filename="./outputs/mapas/Pelagicos_Huevos_plot1995.png", height = 10, width =  12, units = "cm", res = 150, pointsize = 12)
-pelagicos_1995_06_Huevos
-dev.off()
-
-
-# Huevos 1996
-
-layout_matrix1996 <- "
-AABB
-AABB
-"
-
-plot1996<- (
-  pelagicos_1996_05_Huevos +
-    pelagicos_1996_11_Huevos 
-) +
-  patchwork::plot_layout(
-    design = layout_matrix1996,
-    guides = "collect"
-  ) +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-png(filename="./outputs/mapas/Pelagicos_Huevos_plot1996.png", height = 10, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1996
-dev.off()
-
-# Huevos 2008-2009
-
-layout_matrix2008_2009 <- "
-AABB
-AABB
-"
-
-plot2008_2009<- (
-  pelagicos_2008_12_Huevos +
-    pelagicos_2009_12_Huevos 
-) +
-  patchwork::plot_layout(
-    design = layout_matrix2008_2009,
-    guides = "collect"
-  ) +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-png(filename="./outputs/mapas/Pelagicos_Huevos_plot2008_2009.png", height = 10, width =  15, units = "cm", res = 150, pointsize = 12)
-plot2008_2009
+png(filename="./outputs/mapas/Pelagicos_huevos_plot02.png", height = 30, width =  15, units = "cm", res = 200, pointsize = 12)
+plot02
 dev.off()
 
 
@@ -668,127 +600,91 @@ pelagicos_1996_11_larvas <- mapas_individuales("DEMER 9611", '1996-11')
 pelagicos_2008_12_larvas <- mapas_individuales("PELAG0812", '2008-12')
 pelagicos_2009_12_larvas <- mapas_individuales("PELAG0912", '2009-12')
 
-# larvas 1991 
+
+plots <- list(
+  pelagicos_1991_02_larvas = pelagicos_1991_02_larvas,
+  pelagicos_1991_09_larvas = pelagicos_1991_09_larvas,
+  pelagicos_1991_12_larvas = pelagicos_1991_12_larvas,
+  pelagicos_1993_01_larvas = pelagicos_1993_01_larvas,
+  pelagicos_1993_11_larvas = pelagicos_1993_11_larvas,
+  pelagicos_1994_04_larvas = pelagicos_1994_04_larvas,
+  pelagicos_1994_07_larvas = pelagicos_1994_07_larvas,
+  pelagicos_1994_12_larvas = pelagicos_1994_12_larvas,
+  pelagicos_1995_06_larvas = pelagicos_1995_06_larvas,
+  pelagicos_1996_05_larvas = pelagicos_1996_05_larvas,
+  pelagicos_1996_11_larvas = pelagicos_1996_11_larvas,
+  pelagicos_2008_12_larvas = pelagicos_2008_12_larvas,
+  pelagicos_2009_12_larvas = pelagicos_2009_12_larvas
+)
 
 
-layout_matrix1991 <- "
+for (nm in names(plots)) {
+  exportar_png(plots[[nm]], nm,
+               outdir = outdir,
+               width_cm = 15, height_cm = 18, res = 150, pointsize = 12)
+}
+
+
+# Biomasa 1991 
+
+
+layout_matrix01 <- "
 AABB
 AABB
 CCDD
 CCDD
+EEFF
+EEFF
 "
 
-plot1991<- (
+plot01<- (
   pelagicos_1991_02_larvas +
     pelagicos_1991_09_larvas +
-    pelagicos_1991_12_larvas 
+    pelagicos_1991_12_larvas +
+    pelagicos_1993_01_larvas +
+    pelagicos_1993_11_larvas +
+    pelagicos_1994_04_larvas 
+  
 ) +
   patchwork::plot_layout(
-    design = layout_matrix1991,
+    design = layout_matrix01,
     guides = "collect"
   ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
-png(filename="./outputs/mapas/Pelagicos_larvas_plot1991.png", height = 18, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1991
+png(filename="./outputs/mapas/Pelagicos_larvas_plot01.png", height = 25, width =  15, units = "cm", res = 200, pointsize = 12)
+plot01
 dev.off()
 
-# larvas 1993
-
-layout_matrix1993 <- "
-AABB
-AABB
-"
-
-plot1993<- (
-  pelagicos_1993_01_larvas +
-    pelagicos_1993_11_larvas 
-) +
-  patchwork::plot_layout(
-    design = layout_matrix1993,
-    guides = "collect"
-  ) +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-png(filename="./outputs/mapas/Pelagicos_larvas_plot1993.png", height = 10, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1993
-dev.off()
-
-# larvas 1994
-
-layout_matrix1994 <- "
+layout_matrix02 <- "
 AABB
 AABB
 CCDD
 CCDD
+EEFF
+EEFF
+GGHH
+GGHH
 "
 
-plot1994<- (
-  pelagicos_1994_04_larvas +
-    pelagicos_1994_07_larvas +
-    pelagicos_1994_12_larvas
+plot02<- (
+  pelagicos_1994_07_larvas +
+    pelagicos_1994_12_larvas +
+    pelagicos_1995_06_larvas +
+    pelagicos_1996_05_larvas +
+    pelagicos_1996_11_larvas +
+    pelagicos_2008_12_larvas +
+    pelagicos_2009_12_larvas
+  
 ) +
   patchwork::plot_layout(
-    design = layout_matrix1994,
+    design = layout_matrix02,
     guides = "collect"
   ) +
   patchwork::plot_annotation(tag_levels = 'A') &
   theme(legend.position = "right")
 
-png(filename="./outputs/mapas/Pelagicos_larvas_plot1994.png", height = 18, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1994
-dev.off()
-
-# larvas 1995
-
-
-png(filename="./outputs/mapas/Pelagicos_larvas_plot1995.png", height = 10, width =  12, units = "cm", res = 150, pointsize = 12)
-pelagicos_1995_06_larvas
-dev.off()
-
-
-# larvas 1996
-
-layout_matrix1996 <- "
-AABB
-AABB
-"
-
-plot1996<- (
-  pelagicos_1996_05_larvas +
-    pelagicos_1996_11_larvas 
-) +
-  patchwork::plot_layout(
-    design = layout_matrix1996,
-    guides = "collect"
-  ) +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-png(filename="./outputs/mapas/Pelagicos_larvas_plot1996.png", height = 10, width =  15, units = "cm", res = 150, pointsize = 12)
-plot1996
-dev.off()
-
-# larvas 2008-2009
-
-layout_matrix2008_2009 <- "
-AABB
-AABB
-"
-
-plot2008_2009<- (
-  pelagicos_2008_12_larvas +
-    pelagicos_2009_12_larvas 
-) +
-  patchwork::plot_layout(
-    design = layout_matrix2008_2009,
-    guides = "collect"
-  ) +
-  patchwork::plot_annotation(tag_levels = 'A') &
-  theme(legend.position = "right")
-
-png(filename="./outputs/mapas/Pelagicos_larvas_plot2008_2009.png", height = 10, width =  15, units = "cm", res = 150, pointsize = 12)
-plot2008_2009
+png(filename="./outputs/mapas/Pelagicos_larvas_plot02.png", height = 30, width =  15, units = "cm", res = 200, pointsize = 12)
+plot02
 dev.off()
